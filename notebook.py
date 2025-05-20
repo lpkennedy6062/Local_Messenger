@@ -19,6 +19,19 @@ if STORE_DIR.exists() and not STORE_DIR.is_dir():
     STORE_DIR.unlink()
 STORE_DIR.mkdir(exist_ok=True, parents = True)
 
+def load_user_data(username: str) -> dict:
+        store_file = STORE_DIR / f'{username}.json'
+        if not store_file.exists():
+            return {"contacts": [], "messages": {}}
+        with store_file.open('r', encoding='utf-8') as f:
+            return json.load(f)
+        
+def save_user_data(username: str, data: dict) -> None:
+    store_file = STORE_DIR / f"{username}.json"
+    with store_file.open('w', encoding = 'utf-8') as f:
+        json.dump(data, f, indent = 2)
+
+
 class NotebookFileError(Exception):
     """
     NotebookFileError is a custom exception handler that you should catch in your own code. It
@@ -94,20 +107,6 @@ class Notebook:
         self.password = password 
         self.bio = bio 
         self._diaries = []
-    
-
-    def load_user_data(username: str) -> dict:
-        store_file = STORE_DIR / f'{username}.json'
-        if not store_file.exists():
-            return {"contacts": [], "messages": {}}
-        with store_file.open('r', encoding='utf-8') as f:
-            return json.load(f)
-        
-    def save_user_data(username: str, data: dict) -> None:
-        store_file = STORE_DIR / f"{username}.json"
-        with store_file.open('w', encoding = 'utf-8') as f:
-            json.dump(data, f, indent = 2)
-
 
     def add_diary(self, diary: Diary) -> None:
         """Accepts a Diary object as parameter and appends it to the diary list. Diaries 

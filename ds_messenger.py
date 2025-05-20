@@ -9,7 +9,7 @@
 # 81845142
 import socket, time
 from ds_protocol import make_auth, make_directmessage, make_fetch, extract_json
-from notebook import Notebook
+from notebook import load_user_data, save_user_data
 class DirectMessage:
   def __init__(self):
     self.recipient = None
@@ -28,7 +28,7 @@ class DirectMessenger:
     self._sock = None
     self._in = None
     self._out = None
-    self._local = Notebook.load_user_data(self.username)
+    self._local = load_user_data(self.username)
 	# more code should go in here
   
   def connect(self):
@@ -47,12 +47,12 @@ class DirectMessenger:
 
     if resp.type == 'ok':
       self.token = resp.token
-      self._local = Notebook.load_user_data(self.username)
+      self._local = load_user_data(self.username)
       return True
     else:
       return False
 
-  def send(self, message:str, recipient:str) -> bool:
+  def send_msg(self, message:str, recipient:str) -> bool:
     # must return true if message successfully sent, false if send failed.
     ts = time.time()
     msg = make_directmessage(self.token, message, recipient, ts)
@@ -65,7 +65,7 @@ class DirectMessenger:
       if recipient not in self._local['contacts']:
         self._local['contacts'].append(recipient)
       self._local['messages'].setdefault(recipient, []).append({"sender": self.username, 'recipient': recipient, 'message': message, 'timestamp': str(ts)})
-      Notebook.save_user_data(self.username, self._local)
+      save_user_data(self.username, self._local)
     return ok
 		
   def retrieve_new(self) -> list:
@@ -87,7 +87,7 @@ class DirectMessenger:
       if peer not in self._local['contacts']:
         self._local['contacts'].append(peer)
       self._local['messages'].setdefault(peer, []).append({"sender": peer, 'recipient': self.username, 'message': dm.message, 'timestamp': dm.timestamp})
-    Notebook.save_user_data(self.username, self._local)
+    save_user_data(self.username, self._local)
     return out
  
   def retrieve_all(self) -> list:
