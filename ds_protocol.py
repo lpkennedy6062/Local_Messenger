@@ -27,7 +27,7 @@ def make_auth(username: str, password: str) -> str:
   return json.dumps({"authenticate": {"username": username, "password": password}})
 
 def make_directmessage(token: str, entry: str, recipient: str, timestamp: float) -> str:
-  return json.dumps({"token": token, "direct message": {"entry": entry, "recipient": recipient, "timestamp": str(timestamp)}})
+  return json.dumps({"token": token, "directmessage": {"entry": entry, "recipient": recipient, "timestamp": str(timestamp)}})
 
 def make_fetch(token, what) -> str:
   return json.dumps({"token": token, "fetch": what})
