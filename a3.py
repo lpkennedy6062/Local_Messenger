@@ -1,20 +1,12 @@
 # a2.py
-
-# Starter code for assignment 2 in ICS 32 Programming with Software Libraries in Python
-
-# Replace the following placeholders with your information.
-
 # Liam
 # lpkenned@uci.edu
 # 81845142
-
-
 import tkinter as tk
 import time
 from tkinter import ttk, filedialog
 from typing import Text
 from notebook import load_user_data, save_user_data
-
 
 class Body(tk.Frame):
     def __init__(self, root, recipient_selected_callback = None, add_user_callback = None):
@@ -24,12 +16,13 @@ class Body(tk.Frame):
         self._select_callback = recipient_selected_callback
         self._add_user_callback = add_user_callback
         self._contacts = []
-        # After all initialization is complete,
-        # call the _draw method to pack the widgets
-        # into the Body instance
+        # After all initialization is complete, call the _draw method to pack the widgets into the Body instance
         self._draw()
 
-    def node_select(self, event):
+    def node_select(self, _event):
+        self.message_editor.config(state='normal')
+        self.message_editor.delete('1.0', tk.END)
+        self.message_editor.config(state='disabled')
         index = int(self.posts_tree.selection()[0])
         entry = self._contacts[index]
         if self._select_callback is not None:
@@ -63,44 +56,50 @@ class Body(tk.Frame):
         self.entry_editor.insert(1.0, text)
 
     def _draw(self):
+        #left
         posts_frame = tk.Frame(master=self, width=250)
-        posts_frame.pack(fill=tk.BOTH, side=tk.LEFT)
+        posts_frame.pack(fill=tk.BOTH, side=tk.LEFT, padx=5, pady=5)
 
-        self.posts_tree = ttk.Treeview(posts_frame)
+        # contacts tree
+        self.posts_tree = ttk.Treeview(posts_frame, selectmode='browse')
+        self.posts_tree.heading("#0", text="Contacts")
         self.posts_tree.bind("<<TreeviewSelect>>", self.node_select)
-        self.posts_tree.pack(fill=tk.BOTH, side=tk.TOP,
-                             expand=True, padx=5, pady=5)
-
+        self.posts_tree.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=(5,0))
+        # Add user button
         add_btn = tk.Button(posts_frame, text = 'Add User', command=self._add_user_callback)
-        add_btn.pack(fill=tk.X, side = tk.BOTTOM, padx = 5, pady = 5)
-        message_frame = tk.Frame(master=self, bg="yellow")
-        message_frame.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
+        add_btn.pack(fill=tk.X, side = tk.BOTTOM, padx = 5, pady = (5,0))
+        
+        #right and message display
+        message_frame = tk.Frame(self)
+        message_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=True, padx=5, pady=5)
 
-        self.message_editor = tk.Text(message_frame, width=0, height=5, state = 'disabled')
+        hist_frame = tk.Frame(message_frame)
+        hist_frame.pack(fill=tk.BOTH, expand=True, side=tk.TOP)
+
+        self.message_editor = tk.Text(hist_frame, state = 'disabled', wrap='word')
+        
         self.message_editor.tag_configure('entry-right', justify='right')
         self.message_editor.tag_configure('entry-left', justify='left')
-        self.message_editor.pack(fill=tk.BOTH, side=tk.LEFT,
-                                 expand=True, padx=0, pady=0)
+        self.message_editor.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
         
-        entry_frame = tk.Frame(master=self)
-        entry_frame.pack(fill=tk.X, side=tk.TOP, expand=False)
+        hist_scroll = tk.Scrollbar(hist_frame, command=self.message_editor.yview)
+        self.message_editor['yscrollcommand'] = hist_scroll.set
+        hist_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
-        editor_frame = tk.Frame(master=entry_frame, bg="red")
-        editor_frame.pack(anchor = 'center', padx = 50, pady = 5)
+        # entry / scroll removed master=self
+        entry_frame = tk.Frame(message_frame)
+        entry_frame.pack(fill=tk.X, side=tk.TOP, expand=False, pady=(5,0))
 
-        self.entry_editor = tk.Text(editor_frame, wrap = 'word', width=50, height=5)
+        self.entry_editor = tk.Text(entry_frame, wrap = 'word', height=5)
+        
         self.entry_editor.tag_configure('entry-right', justify='right')
         self.entry_editor.tag_configure('entry-left', justify='left')
-        self.entry_editor.pack(fill=tk.BOTH, expand = True, padx=0, pady=0)
+        self.entry_editor.pack(fill=tk.X, expand = True)
+            #remove side=tk.LEFT,  from above
+        #entry_scroll = tk.Scrollbar(entry_frame, command=self.entry_editor.yview)
 
-        scroll_frame = tk.Frame(master=entry_frame, bg="blue", width=10)
-        scroll_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand = False)
-
-        entry_editor_scrollbar = tk.Scrollbar(master=scroll_frame, command=self.entry_editor.yview)
-
-        self.entry_editor['yscrollcommand'] = entry_editor_scrollbar.set
-        entry_editor_scrollbar.pack(fill=tk.Y, side=tk.LEFT,
-                                    expand=False, padx=0, pady=0)
+        #self.entry_editor['yscrollcommand'] = entry_scroll.set
+        #entry_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
 '''def _draw(self):
         posts_frame = tk.Frame(master=self, width=250)
@@ -183,6 +182,11 @@ class NewContactDialog(tk.simpledialog.Dialog):
         self.username_entry.insert(tk.END, self.user)
         self.username_entry.pack()
 
+        self.password_label = tk.Label(frame, width=30, text="Password")
+        self.password_label.pack(pady=(10,0))
+        self.password_entry = tk.Entry(frame, width=30, show='*')
+        self.password_entry.insert(tk.END, self.pwd)
+        self.password_entry.pack()
         # You need to implement also the region for the user to enter
         # the Password. The code is similar to the Username you see above
         # but you will want to add self.password_entry['show'] = '*'
@@ -219,13 +223,11 @@ class MainApp(tk.Frame):
         self._draw()
         self._local = load_user_data(self.username)
         for c in self._local['contacts']:
-            self.body.insert_contact(c)
-        # You must implement this! You must configure and
-        # instantiate your DirectMessenger instance after this line.
+            if c not in self.body._contacts:
+                self.body.insert_contact(c)
+        # You must implement this! You must configure and instantiate your DirectMessenger instance after this line.
         #self.direct_messenger = ... continue!
-        # After all initialization is complete,
-        # call the _draw method to pack the widgets
-        # into the root frame
+        # After all initialization is complete, call the _draw method to pack the widgets into the root frame
         #self.body.insert_contact("studentexw23") adding one example student.
 
     def send_message(self):
@@ -245,11 +247,21 @@ class MainApp(tk.Frame):
             tk.messagebox.showerror("Send failed", f"Cound not send to {self.recipient}")
 
     def add_contact(self):
-        # You must implement this!
         # Hint: check how to use tk.simpledialog.askstring to retrieve
-        # the name of the new contact, and then use one of the body
-        # methods to add the contact to your contact list
+        # the name of the new contact, and then use one of the body methods to add the contact to your contact list
         new = tk.simpledialog.askstring("Add Contact", "Username:")
+        if not new or new in self._local['contacts']:
+            return
+        pwd = tk.simpledialog.askstring(f"Password for {new}", f"Enter password to register or authenticate '{new}:", show="*")
+        if pwd is None:
+            return
+        if self.direct_messenger.authenticate(new, pwd):
+            self.body.insert_contact(new)
+            self._local['contacts'].append(new)
+            self._local['messages'][new] = []
+            save_user_data(self.username, self._local)
+        else:
+            tk.messagebox.showerror("Error", f"I could not register user {new}")
         if new:
             self.body.insert_contact(new)
             if new not in self._local['contacts']:
@@ -260,25 +272,31 @@ class MainApp(tk.Frame):
     def recipient_selected(self, recipient):
         self.recipient = recipient
 
+        self.body.message_editor.config(state='normal')
+        self.body.message_editor.delete('1.0', tk.END)
+
+        history = self._local['messages'].get(recipient, [])
+        for msg in history:
+            if msg['sender'] == self.username:
+                self.body.insert_user_message(msg['message'])
+            else:
+                self.body.insert_contact_message(msg['message'])
+
     def configure_server(self):
         ud = NewContactDialog(self.root, "Configure Account",
                               self.username, self.password, self.server)
         self.username = ud.user
         self.password = ud.pwd
         self.server = ud.server
-        # You must implement this!
-        # You must configure and instantiate your
-        # DirectMessenger instance after this line.
+        # You must configure and instantiate your DirectMessenger instance after this line.
 
     def publish(self, message:str):
-        # You must implement this!
         if self.recipient == self.username:
             self.body.insert_user_message(message)
         else:
             self.body.insert_contact_message(message)
 
     def check_new(self):
-        # You must implement this!
         new = self.direct_messenger.retrieve_new()
         for dm in new:
             sender = dm.sender
@@ -289,9 +307,9 @@ class MainApp(tk.Frame):
                 self.body.insert_contact(sender)
             self._local['messages'].setdefault(sender, []).append({'sender': sender, 'recipient': self.username, 'message': msg, 'timestamp': dm.timestamp})
             if sender == self.recipient:
-                self.insert_contact_message(msg)
+                self.body.insert_contact_message(msg)
         save_user_data(self.username, self._local)
-        self.root.after(5000, self.check_new)
+        self.root.after(2000, app.check_new)
     def _draw(self):
         # Build a menu and add it to the root frame.
         menu_bar = tk.Menu(self.root)
@@ -309,11 +327,8 @@ class MainApp(tk.Frame):
                                   command=self.add_contact)
         settings_file.add_command(label='Configure DS Server',
                                   command=self.configure_server)
-
-        # The Body and Footer classes must be initialized and
-        # packed into the root window.
-        self.body = Body(self.root,
-                         recipient_selected_callback=self.recipient_selected, add_user_callback=self.add_contact)
+        # The Body and Footer classes must be initialized and packed into the root window.
+        self.body = Body(self.root, recipient_selected_callback=self.recipient_selected, add_user_callback=self.add_contact)
         self.body.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
         self.footer = Footer(self.root, send_callback=self.send_message)
         self.footer.pack(fill=tk.BOTH, side=tk.BOTTOM)

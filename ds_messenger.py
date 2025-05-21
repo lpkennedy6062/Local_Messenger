@@ -36,7 +36,11 @@ class DirectMessenger:
     self._in = self._sock.makefile('r')
     self._out = self._sock.makefile('w')
 
-  def authenticate(self) -> bool:
+  def authenticate(self, username = None, password = None) -> bool:
+    if username is not None:
+      self.username = username
+    if password is not None:
+      self.password = password
     self.connect()
     msg = make_auth(self.username, self.password)
     self._out.write(msg + '\r\n')
