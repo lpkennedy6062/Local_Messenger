@@ -1,14 +1,13 @@
-# a2.py
+# a3.py
 # Liam
 # lpkenned@uci.edu
 # 81845142
 import tkinter as tk
 import time
-from tkinter import ttk, filedialog, simpledialog
+from tkinter import ttk, filedialog, simpledialog, messagebox
 from typing import Text
 from notebook import load_user_data, save_user_data
 from ds_messenger import DirectMessenger
-
 
 class Body(tk.Frame):
     def __init__(self, root, recipient_selected_callback = None, add_user_callback = None):
@@ -18,7 +17,6 @@ class Body(tk.Frame):
         self._select_callback = recipient_selected_callback
         self._add_user_callback = add_user_callback
         self._contacts = []
-        # After all initialization is complete, call the _draw method to pack the widgets into the Body instance
         self._draw()
 
     def node_select(self, _event):
@@ -98,11 +96,6 @@ class Body(tk.Frame):
         self.entry_editor.tag_configure('entry-left', justify='left')
         self.entry_editor.pack(fill=tk.X, expand = True)
 
-        #entry_scroll = tk.Scrollbar(entry_frame, command=self.entry_editor.yview)
-
-        #self.entry_editor['yscrollcommand'] = entry_scroll.set
-        #entry_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-
 class Footer(tk.Frame):
     def __init__(self, root, send_callback=None):
         tk.Frame.__init__(self, root)
@@ -116,14 +109,10 @@ class Footer(tk.Frame):
 
     def _draw(self):
         save_button = tk.Button(master=self, text="Send", width=20, command = self.send_click)
-        # You must implement this.
-        # Here you must configure the button to bind its click to
-        # the send_click() function.
         save_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
 
         self.footer_label = tk.Label(master=self, text="Ready.")
         self.footer_label.pack(fill=tk.BOTH, side=tk.LEFT, padx=5)
-
 
 class NewContactDialog(tk.simpledialog.Dialog):
     def __init__(self, root, title=None, user=None, pwd=None, server=None):
@@ -157,12 +146,11 @@ class NewContactDialog(tk.simpledialog.Dialog):
         self.pwd = self.password_entry.get()
         self.server = self.server_entry.get()
 
-
 class MainApp(tk.Frame):
-    def __init__(self, root):
+    def __init__(self, root, direct_messenger):
         super().__init__(root)
         self.root = root
-        self.username = ''
+        '''self.username = ''
         self.password = ''
         self.server = ''
         self.recipient = ''
@@ -176,10 +164,12 @@ class MainApp(tk.Frame):
         if not self.direct_messenger.authenticate():
             tk.messagebox.showerror("Login failed", "Cound not connect with those creds")
             self.root.destroy()
-            return
+            return'''
+        self.direct_messenger = direct_messenger
+        self.username = direct_messenger.username
         
         self._draw()
-        self._local = load_user_data(self.username)
+        self._local = load_user_data(self.direct_messenger.username)
         for c in self._local['contacts']:
             if c not in self.body._contacts:
                 self.body.insert_contact(c)
@@ -189,7 +179,9 @@ class MainApp(tk.Frame):
         #self.body.insert_contact("studentexw23") adding one example student.
 
     def send_message(self):
-        # You must implement this!
+        if getattr(self, 'offline', False):
+            tk.messagebox.showerror("Offline", "Cannot send messages while offline.")
+            return
         print("DEBUG: send_message() called; recipient=", self.recipient)
         text = self.body.get_text_entry().strip()
         print("DEBUG: text=", repr(text))
@@ -205,8 +197,6 @@ class MainApp(tk.Frame):
             tk.messagebox.showerror("Send failed", f"Cound not send to {self.recipient}")
 
     def add_contact(self):
-        # Hint: check how to use tk.simpledialog.askstring to retrieve
-        # the name of the new contact, and then use one of the body methods to add the contact to your contact list
         new = tk.simpledialog.askstring("Add Contact", "Username:")
         if not new or new in self._local['contacts']:
             return
@@ -222,12 +212,6 @@ class MainApp(tk.Frame):
             save_user_data(self.username, self._local)
         else:
             tk.messagebox.showerror("Error", f"I could not register user {new}")
-        '''if new:
-            self.body.insert_contact(new)
-            if new not in self._local['contacts']:
-                self._local['contacts'].append(new)
-                self._local['messages'][new] = []
-                save_user_data(self.username, self._local)'''
 
     def recipient_selected(self, recipient):
         self.recipient = recipient
@@ -269,9 +253,8 @@ class MainApp(tk.Frame):
             if sender == self.recipient:
                 self.body.insert_contact_message(msg)
         save_user_data(self.username, self._local)
-        self.root.after(2000, app.check_new)
+        self.root.after(2000, self.check_new)
     def _draw(self):
-        # Build a menu and add it to the root frame.
         menu_bar = tk.Menu(self.root)
         self.root['menu'] = menu_bar
         menu_file = tk.Menu(menu_bar)
@@ -287,7 +270,6 @@ class MainApp(tk.Frame):
                                   command=self.add_contact)
         settings_file.add_command(label='Configure DS Server',
                                   command=self.configure_server)
-        # The Body and Footer classes must be initialized and packed into the root window.
         self.body = Body(self.root, recipient_selected_callback=self.recipient_selected, add_user_callback=self.add_contact)
         self.body.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
         self.footer = Footer(self.root, send_callback=self.send_message)
@@ -321,9 +303,6 @@ class LoginDialog(simpledialog.Dialog):
         self.password = self.pw_entry.get()
 
 if __name__ == "__main__":
-    '''server = '127.0.0.1'
-    username = 'alice'
-    password = 'password'''
     root = tk.Tk()
     root.withdraw()
 
@@ -333,33 +312,46 @@ if __name__ == "__main__":
         exit(1)
 
     dm = DirectMessenger(host=dlg.server, port = 3001, username = dlg.username, password = dlg.password)
-    if not dm.authenticate():
-        print("Login failed - check server/info")
+
+    offline = False
+    try:
+        ok = dm.authenticate()
+    except (ConnectionRefusedError, OSError):
+        offline = True
+        ok = False
+    if ok:
+        pass
+    elif offline:
+        local = load_user_data(dlg.username)
+        if local and local['contacts']:
+            messagebox.showwarning("Offline Mode", f"Cannot connect to {dlg.server}, starting offline.")
+        else:
+            messagebox.showerror("Cannot start offline", "No local data and server is unreachable.")
+            root.destroy()
+            exit(1)
+    else:
+        messagebox.showerror("Login failed", "Incorrect username/password.")
         root.destroy()
         exit(1)
+
+    '''if not dm.authenticate():
+        print("Login failed - check server/info")
+        root.destroy()
+        exit(1)'''
     
     root.deiconify()
-    root.title("Direct Messenger")
+    root.title("Direct Messenger - {dlg.username}")
     root.geometry("800x600")
-    app = MainApp(root)
-    app.direct_messenger = dm
+    app = MainApp(root, direct_messenger=dm)
+    app.offline = offline
+    app.pack(fill=tk.BOTH, expand=True)
+    #app.direct_messenger = dm
 
-    def check():
+    _local = load_user_data(dlg.username)
+    for c in _local['contacts']:
+        if c not in app.body._contacts:
+            app.body.insert_contact(c)
+
+    if ok:
         app.check_new()
-        root.after(2000, check)
-    root.after(2000, check)
     root.mainloop()
-'''
-    main.geometry("720x480")
-    main.option_add('*tearOff', False)
-
-    app = MainApp(main)
-
-    main.update()
-    main.minsize(main.winfo_width(), main.winfo_height())
-'''
-
-
-'''def_quit(self) -> None:
-        if tkinter.messagebox.asokcancel(title='Quit', message = "Really quit?):
-            self.destroy'''
