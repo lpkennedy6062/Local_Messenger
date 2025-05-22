@@ -4,9 +4,11 @@
 # 81845142
 import tkinter as tk
 import time
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, simpledialog
 from typing import Text
 from notebook import load_user_data, save_user_data
+from ds_messenger import DirectMessenger
+
 
 class Body(tk.Frame):
     def __init__(self, root, recipient_selected_callback = None, add_user_callback = None):
@@ -95,50 +97,12 @@ class Body(tk.Frame):
         self.entry_editor.tag_configure('entry-right', justify='right')
         self.entry_editor.tag_configure('entry-left', justify='left')
         self.entry_editor.pack(fill=tk.X, expand = True)
-            #remove side=tk.LEFT,  from above
+
         #entry_scroll = tk.Scrollbar(entry_frame, command=self.entry_editor.yview)
 
         #self.entry_editor['yscrollcommand'] = entry_scroll.set
         #entry_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
-'''def _draw(self):
-        posts_frame = tk.Frame(master=self, width=250)
-        posts_frame.pack(fill=tk.BOTH, side=tk.LEFT)
-
-        self.posts_tree = ttk.Treeview(posts_frame)
-        self.posts_tree.bind("<<TreeviewSelect>>", self.node_select)
-        self.posts_tree.pack(fill=tk.BOTH, side=tk.TOP,
-                             expand=True, padx=5, pady=5)
-
-        entry_frame = tk.Frame(master=self, bg="")
-        entry_frame.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
-
-        editor_frame = tk.Frame(master=entry_frame, bg="red")
-        editor_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
-
-        scroll_frame = tk.Frame(master=entry_frame, bg="blue", width=10)
-        scroll_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=False)
-
-        message_frame = tk.Frame(master=self, bg="yellow")
-        message_frame.pack(fill=tk.BOTH, side=tk.TOP, expand=False)
-
-        self.message_editor = tk.Text(message_frame, width=0, height=5, state = 'disabled')
-        self.message_editor.tag_configure('entry-right', justify='right')
-        self.message_editor.tag_configure('entry-left', justify='left')
-        self.message_editor.pack(fill=tk.BOTH, side=tk.LEFT,
-                                 expand=True, padx=0, pady=0)
-
-        self.entry_editor = tk.Text(editor_frame, width=0, height=5)
-        self.entry_editor.tag_configure('entry-right', justify='right')
-        self.entry_editor.tag_configure('entry-left', justify='left')
-        self.entry_editor.pack(fill=tk.BOTH, side=tk.LEFT,
-                               expand=True, padx=0, pady=0)
-
-        entry_editor_scrollbar = tk.Scrollbar(master=scroll_frame,
-                                              command=self.entry_editor.yview)
-        self.entry_editor['yscrollcommand'] = entry_editor_scrollbar.set
-        entry_editor_scrollbar.pack(fill=tk.Y, side=tk.LEFT,
-                                    expand=False, padx=0, pady=0)'''
 class Footer(tk.Frame):
     def __init__(self, root, send_callback=None):
         tk.Frame.__init__(self, root)
@@ -187,12 +151,6 @@ class NewContactDialog(tk.simpledialog.Dialog):
         self.password_entry = tk.Entry(frame, width=30, show='*')
         self.password_entry.insert(tk.END, self.pwd)
         self.password_entry.pack()
-        # You need to implement also the region for the user to enter
-        # the Password. The code is similar to the Username you see above
-        # but you will want to add self.password_entry['show'] = '*'
-        # such that when the user types, the only thing that appears are
-        # * symbols.
-        #self.password...
 
     def apply(self):
         self.user = self.username_entry.get()
@@ -252,22 +210,24 @@ class MainApp(tk.Frame):
         new = tk.simpledialog.askstring("Add Contact", "Username:")
         if not new or new in self._local['contacts']:
             return
-        pwd = tk.simpledialog.askstring(f"Password for {new}", f"Enter password to register or authenticate '{new}:", show="*")
+        pwd = tk.simpledialog.askstring(f"Password for {new}", f"Enter password to register or authenticate '{new}':", show="*")
         if pwd is None:
             return
-        if self.direct_messenger.authenticate(new, pwd):
+        temp = DirectMessenger(host=self.server, port=3001, username=new, password=pwd)
+
+        if temp.authenticate():
             self.body.insert_contact(new)
             self._local['contacts'].append(new)
             self._local['messages'][new] = []
             save_user_data(self.username, self._local)
         else:
             tk.messagebox.showerror("Error", f"I could not register user {new}")
-        if new:
+        '''if new:
             self.body.insert_contact(new)
             if new not in self._local['contacts']:
                 self._local['contacts'].append(new)
                 self._local['messages'][new] = []
-                save_user_data(self.username, self._local)
+                save_user_data(self.username, self._local)'''
 
     def recipient_selected(self, recipient):
         self.recipient = recipient
@@ -333,23 +293,53 @@ class MainApp(tk.Frame):
         self.footer = Footer(self.root, send_callback=self.send_message)
         self.footer.pack(fill=tk.BOTH, side=tk.BOTTOM)
 
+class LoginDialog(simpledialog.Dialog):
+    def body(self, master):
+        row1 = tk.Frame(master)
+        row1.pack(fill='x', padx=5, pady=2)
+        tk.Label(row1, text="Server:").pack(side='left')
+        self.server_entry = tk.Entry(row1)
+        self.server_entry.insert(0, "127.0.0.1")
+        self.server_entry.pack(side='right', fill='x', expand=True)
+
+        row2 = tk.Frame(master)
+        row2.pack(fill='x', padx=5, pady=2)
+        tk.Label(row2, text="Username:").pack(side='left')
+        self.user_entry = tk.Entry(row2)
+        self.user_entry.pack(side='right', fill='x', expand=True)
+
+        row3 = tk.Frame(master)
+        row3.pack(fill='x', padx=5, pady=2)
+        tk.Label(row3, text="Password:").pack(side='left')
+        self.pw_entry = tk.Entry(row3, show='*')
+        self.pw_entry.pack(side='right', fill='x', expand=True)
+        return self.user_entry
+
+    def apply(self):
+        self.server = self.server_entry.get().strip()
+        self.username = self.user_entry.get().strip()
+        self.password = self.pw_entry.get()
 
 if __name__ == "__main__":
-    import tkinter as tk
-    from ds_messenger import DirectMessenger
-
-
-    server = '127.0.0.1'
+    '''server = '127.0.0.1'
     username = 'alice'
-    password = 'password'
+    password = 'password'''
+    root = tk.Tk()
+    root.withdraw()
 
-    dm = DirectMessenger(host=server, port = 3001, username = username, password = password)
+    dlg = LoginDialog(root, title="Login to DS Server")
+    if not getattr(dlg, "username", ""):
+        root.destroy()
+        exit(1)
+
+    dm = DirectMessenger(host=dlg.server, port = 3001, username = dlg.username, password = dlg.password)
     if not dm.authenticate():
         print("Login failed - check server/info")
+        root.destroy()
         exit(1)
     
-    root = tk.Tk()
-    root.title("DS Direct Messenger")
+    root.deiconify()
+    root.title("Direct Messenger")
     root.geometry("800x600")
     app = MainApp(root)
     app.direct_messenger = dm
@@ -359,9 +349,7 @@ if __name__ == "__main__":
         root.after(2000, check)
     root.after(2000, check)
     root.mainloop()
-
-    '''main = tk.Tk()
-    main.title("ICS 32 Distributed Social Messenger")
+'''
     main.geometry("720x480")
     main.option_add('*tearOff', False)
 
@@ -369,8 +357,7 @@ if __name__ == "__main__":
 
     main.update()
     main.minsize(main.winfo_width(), main.winfo_height())
-    main.after(2000, app.check_new)
-    main.mainloop()'''
+'''
 
 
 '''def_quit(self) -> None:

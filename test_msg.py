@@ -9,7 +9,7 @@ assert alice.authenticate(), "Alice login failed"
 assert bob.authenticate(),   "Bob login failed"
 
 # 2) Alice sends Bob a message
-ok = alice.send("Hello Bob!", "bob")
+ok = alice.send_msg("Hello Bob!", "bob")
 print("Alice→Bob send OK:", ok)
 
 # Give the server a moment
