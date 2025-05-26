@@ -1,0 +1,21 @@
+{
+  "contacts": [
+    "bob"
+  ],
+  "messages": {
+    "bob": [
+      {
+        "sender": "alice",
+        "recipient": "bob",
+        "message": "Hello Bob!",
+        "timestamp": "1748225434.776413"
+      },
+      {
+        "sender": "bob",
+        "recipient": "alice",
+        "message": "hey alice",
+        "timestamp": "1748225434.894602"
+      }
+    ]
+  }
+}

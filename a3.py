@@ -150,33 +150,13 @@ class MainApp(tk.Frame):
     def __init__(self, root, direct_messenger):
         super().__init__(root)
         self.root = root
-        '''self.username = ''
-        self.password = ''
-        self.server = ''
-        self.recipient = ''
-        
-        self.server = '127.0.0.1'
-        self.username = 'alice'
-        self.password = 'password'
-        
-        from ds_messenger import DirectMessenger
-        self.direct_messenger = DirectMessenger(host=self.server, port = 3001, username = self.username, password = self.password)
-        if not self.direct_messenger.authenticate():
-            tk.messagebox.showerror("Login failed", "Cound not connect with those creds")
-            self.root.destroy()
-            return'''
         self.direct_messenger = direct_messenger
         self.username = direct_messenger.username
-        
         self._draw()
         self._local = load_user_data(self.direct_messenger.username)
         for c in self._local['contacts']:
             if c not in self.body._contacts:
                 self.body.insert_contact(c)
-        # You must implement this! You must configure and instantiate your DirectMessenger instance after this line.
-        #self.direct_messenger = ... continue!
-        # After all initialization is complete, call the _draw method to pack the widgets into the root frame
-        #self.body.insert_contact("studentexw23") adding one example student.
 
     def send_message(self):
         if getattr(self, 'offline', False):
@@ -302,14 +282,15 @@ class LoginDialog(simpledialog.Dialog):
         self.username = self.user_entry.get().strip()
         self.password = self.pw_entry.get()
 
-if __name__ == "__main__":
+def main():
+    import sys
     root = tk.Tk()
     root.withdraw()
 
     dlg = LoginDialog(root, title="Login to DS Server")
     if not getattr(dlg, "username", ""):
         root.destroy()
-        exit(1)
+        return 1
 
     dm = DirectMessenger(host=dlg.server, port = 3001, username = dlg.username, password = dlg.password)
 
@@ -328,17 +309,12 @@ if __name__ == "__main__":
         else:
             messagebox.showerror("Cannot start offline", "No local data and server is unreachable.")
             root.destroy()
-            exit(1)
+            return 1
     else:
         messagebox.showerror("Login failed", "Incorrect username/password.")
         root.destroy()
-        exit(1)
+        return 1
 
-    '''if not dm.authenticate():
-        print("Login failed - check server/info")
-        root.destroy()
-        exit(1)'''
-    
     root.deiconify()
     root.title("Direct Messenger - {dlg.username}")
     root.geometry("800x600")
@@ -355,3 +331,7 @@ if __name__ == "__main__":
     if ok:
         app.check_new()
     root.mainloop()
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())

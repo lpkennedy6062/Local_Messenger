@@ -1,0 +1,57 @@
+{
+  "contacts": [
+    "alice"
+  ],
+  "messages": {
+    "alice": [
+      {
+        "sender": "alice",
+        "recipient": "bob",
+        "message": "Hello Bob!",
+        "timestamp": "1748224859.608681"
+      },
+      {
+        "sender": "bob",
+        "recipient": "alice",
+        "message": "hey alice",
+        "timestamp": "1748224859.728393"
+      },
+      {
+        "sender": "alice",
+        "recipient": "bob",
+        "message": "Hello Bob!",
+        "timestamp": "1748225008.947329"
+      },
+      {
+        "sender": "bob",
+        "recipient": "alice",
+        "message": "hey alice",
+        "timestamp": "1748225009.06794"
+      },
+      {
+        "sender": "alice",
+        "recipient": "bob",
+        "message": "Hello Bob!",
+        "timestamp": "1748225198.006178"
+      },
+      {
+        "sender": "bob",
+        "recipient": "alice",
+        "message": "hey alice",
+        "timestamp": "1748225198.12564"
+      },
+      {
+        "sender": "alice",
+        "recipient": "bob",
+        "message": "Hello Bob!",
+        "timestamp": "1748225434.776804"
+      },
+      {
+        "sender": "bob",
+        "recipient": "alice",
+        "message": "hey alice",
+        "timestamp": "1748225434.894541"
+      }
+    ]
+  }
+}

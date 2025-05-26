@@ -11,7 +11,7 @@
 # YOU DO NOT NEED TO READ OR UNDERSTAND THE JSON SERIALIZATION ASPECTS OF THIS CODE 
 # RIGHT NOW, though can you certainly take a look at it if you are curious since we 
 # already covered a bit of the JSON format in class.
-
+'''
 import json, time
 from pathlib import Path
 STORE_DIR = Path.home() / '.ds_store'
@@ -29,7 +29,30 @@ def load_user_data(username: str) -> dict:
 def save_user_data(username: str, data: dict) -> None:
     store_file = STORE_DIR / f"{username}.json"
     with store_file.open('w', encoding = 'utf-8') as f:
-        json.dump(data, f, indent = 2)
+        json.dump(data, f, indent = 2)'''
+# notebook.py
+
+import json
+from pathlib import Path
+
+# module-level constants we can override in tests
+BASE_DIR  = Path.home() / "Documents" / "ICS_32" / "a3-starter"
+STORE_DIR = BASE_DIR / "store"
+
+def load_user_data(username: str) -> dict:
+    """Load contacts+messages for a user, or return default on error."""
+    default = {"contacts": [], "messages": {}}
+    path = STORE_DIR / f"{username}.json"
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return default
+
+def save_user_data(username: str, data: dict) -> None:
+    """Save a user’s notebook, creating directories as needed."""
+    STORE_DIR.mkdir(parents=True, exist_ok=True)
+    path = STORE_DIR / f"{username}.json"
+    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
 
 class NotebookFileError(Exception):
