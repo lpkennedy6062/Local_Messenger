@@ -25,6 +25,10 @@ def test_main_flow(monkeypatch, tmp_path, auth_ok, offline, expected):
             if offline:
                 raise ConnectionRefusedError()
             return auth_ok
+        def retrieve_new(self):
+            return []
+        def retrieve_all(self):
+            return []
 
     monkeypatch.setattr(a3, "DirectMessenger", FakeDM)
 

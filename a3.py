@@ -331,6 +331,7 @@ def main():
     if ok:
         app.check_new()
     root.mainloop()
+    return 0
 
 if __name__ == "__main__":
     import sys

@@ -35,7 +35,6 @@ def save_user_data(username: str, data: dict) -> None:
 import json
 from pathlib import Path
 
-# module-level constants we can override in tests
 BASE_DIR  = Path.home() / "Documents" / "ICS_32" / "a3-starter"
 STORE_DIR = BASE_DIR / "store"
 
@@ -44,7 +43,8 @@ def load_user_data(username: str) -> dict:
     default = {"contacts": [], "messages": {}}
     path = STORE_DIR / f"{username}.json"
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        test = path.read_text(encoding="utf-8")
+        return json.loads(test)
     except (FileNotFoundError, json.JSONDecodeError):
         return default
 
