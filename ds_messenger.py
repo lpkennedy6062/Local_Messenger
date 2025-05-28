@@ -4,11 +4,9 @@
 # Liam
 # lpkenned@uci.edu
 # 81845142
-import socket
-import time
+import socket, time
 from ds_protocol import make_auth, make_directmessage, make_fetch, extract_json
 from notebook import load_user_data, save_user_data
-
 
 class DirectMessage:
     '''Format for the specific Direct Message function'''
@@ -21,13 +19,7 @@ class DirectMessage:
 
 class DirectMessenger:
     '''Support code for the Messenger'''
-    def __init__(
-            self,
-            host='127.0.0.1',
-            port=3001,
-            dsuserver=None,
-            username=None,
-            password=None):
+    def __init__(self, host='127.0.0.1', port=3001, dsuserver=None, username=None, password=None):
         self.token = None
         self.host = host
         self.port = port
@@ -78,9 +70,8 @@ class DirectMessenger:
         if ok:
             if recipient not in self._local['contacts']:
                 self._local['contacts'].append(recipient)
-            self._local['messages'].setdefault(recipient, []).append
-            ({"sender": self.username, 'recipient': recipient,
-             'message': message, 'timestamp': str(ts)})
+            self._local['messages'].setdefault(recipient, []).append({
+                "sender": self.username, 'recipient': recipient, 'message': message, 'timestamp': str(ts)})
             save_user_data(self.username, self._local)
         return ok
 
@@ -98,7 +89,6 @@ class DirectMessenger:
             dm.message = m.get('message')
             dm.timestamp = m.get('timestamp')
             out.append(dm)
-
             peer = dm.sender
             if peer not in self._local['contacts']:
                 self._local['contacts'].append(peer)

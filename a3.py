@@ -2,18 +2,18 @@
 # Liam
 # lpkenned@uci.edu
 # 81845142
+'''a3.py sets the Tkinter GUI for DS Direct Messenger'''
+import sys
 import tkinter as tk
 import time
 from tkinter import ttk, simpledialog, messagebox
 from notebook import load_user_data, save_user_data
 from ds_messenger import DirectMessenger
-
 class Body(tk.Frame):
     '''Formulates the body of the GUI'''
     def __init__(self, root, recipient_selected_callback = None, add_user_callback = None):
         '''Initializes base variables'''
         tk.Frame.__init__(self, root)
-        self.root = root
         self._contacts = [str]
         self._select_callback = recipient_selected_callback
         self._add_user_callback = add_user_callback
@@ -33,14 +33,12 @@ class Body(tk.Frame):
     def insert_contact(self, contact: str):
         '''Inserts contacts'''
         self._contacts.append(contact)
-        id = len(self._contacts) - 1
-        self._insert_contact_tree(id, contact)
+        idx = len(self._contacts) - 1
+        self._insert_contact_tree(idx, contact)
 
-    def _insert_contact_tree(self, id, contact: str):
+    def _insert_contact_tree(self, idx, contact: str):
         '''Inputs the contact trees'''
-        if len(contact) > 25:
-            entry = contact[:24] + "..."
-        id = self.posts_tree.insert('', id, id, text=contact)
+        idx = self.posts_tree.insert('', idx, idx, text=contact)
 
     def insert_user_message(self, message:str):
         '''Adds user message into editor on the right'''
@@ -85,10 +83,8 @@ class Body(tk.Frame):
         hist_frame.pack(fill=tk.BOTH, expand=True, side=tk.TOP)
 
         self.message_editor = tk.Text(hist_frame, state = 'disabled', wrap='word')
-        self.message_editor.tag_configure('entry-right', justify='right')
-        self.message_editor.tag_configure('entry-left', justify='left')
         self.message_editor.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
-        
+        # history scroll
         hist_scroll = tk.Scrollbar(hist_frame, command=self.message_editor.yview)
         self.message_editor['yscrollcommand'] = hist_scroll.set
         hist_scroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -98,17 +94,17 @@ class Body(tk.Frame):
         entry_frame.pack(fill=tk.X, side=tk.TOP, expand=False, pady=(5,0))
 
         self.entry_editor = tk.Text(entry_frame, wrap = 'word', height=5)
-        
-        self.entry_editor.tag_configure('entry-right', justify='right')
-        self.entry_editor.tag_configure('entry-left', justify='left')
         self.entry_editor.pack(fill=tk.X, expand = True)
+        for widget in (self.message_editor, self.entry_editor):
+            for tag, align in (('entry-right', 'right'),
+                               ('entry-left',  'left')):
+                widget.tag_configure(tag, justify=align)
 
 class Footer(tk.Frame):
     '''Creates the Footer Class'''
     def __init__(self, root, send_callback=None):
         '''Initializes variables'''
         tk.Frame.__init__(self, root)
-        self.root = root
         self._send_callback = send_callback
         self._draw()
 
@@ -135,23 +131,23 @@ class NewContactDialog(tk.simpledialog.Dialog):
         self.pwd = pwd
         super().__init__(root, title)
 
-    def body(self, frame):
+    def body(self, master):
         '''Sets up body of the frame'''
-        self.server_label = tk.Label(frame, width=30, text="DS Server Address")
+        self.server_label = tk.Label(master, width=30, text="DS Server Address")
         self.server_label.pack()
-        self.server_entry = tk.Entry(frame, width=30)
+        self.server_entry = tk.Entry(master, width=30)
         self.server_entry.insert(tk.END, self.server)
         self.server_entry.pack()
 
-        self.username_label = tk.Label(frame, width=30, text="Username")
+        self.username_label = tk.Label(master, width=30, text="Username")
         self.username_label.pack()
-        self.username_entry = tk.Entry(frame, width=30)
+        self.username_entry = tk.Entry(master, width=30)
         self.username_entry.insert(tk.END, self.user)
         self.username_entry.pack()
 
-        self.password_label = tk.Label(frame, width=30, text="Password")
+        self.password_label = tk.Label(master, width=30, text="Password")
         self.password_label.pack(pady=(10,0))
-        self.password_entry = tk.Entry(frame, width=30, show='*')
+        self.password_entry = tk.Entry(master, width=30, show='*')
         self.password_entry.insert(tk.END, self.pwd)
         self.password_entry.pack()
 
@@ -169,6 +165,9 @@ class MainApp(tk.Frame):
         self.root = root
         self.direct_messenger = direct_messenger
         self.username = direct_messenger.username
+        self.server = direct_messenger.host
+        self.password = direct_messenger.password
+        self.recipient = direct_messenger.recipient
         self._draw()
         self._local = load_user_data(self.direct_messenger.username)
         for c in self._local['contacts']:
@@ -188,8 +187,9 @@ class MainApp(tk.Frame):
         ok = self.direct_messenger.send_msg(text, self.recipient)
         if ok:
             self.body.insert_user_message(text)
-            self._local['messages'].setdefault(self.recipient,[]).append({"sender": self.username, 
-                "recipient": self.recipient, "message":   text, "timestamp": str(time.time())})
+            self._local['messages'].setdefault(self.recipient,[]).append({
+                "sender": self.username, "recipient": self.recipient, 
+                "message":   text, "timestamp": str(time.time())})
             save_user_data(self.username, self._local)
             self.body.set_text_entry("")
         else:
@@ -200,7 +200,7 @@ class MainApp(tk.Frame):
         new = tk.simpledialog.askstring("Add Contact", "Username:")
         if not new or new in self._local['contacts']:
             return
-        pwd = tk.simpledialog.askstring(f"Password for {new}", 
+        pwd = tk.simpledialog.askstring(f"Password for {new}",
             f"Enter password to register or authenticate '{new}':", show="*")
         if pwd is None:
             return
@@ -253,8 +253,9 @@ class MainApp(tk.Frame):
             if sender not in self._local['contacts']:
                 self._local['contacts'].append(sender)
                 self.body.insert_contact(sender)
-            self._local['messages'].setdefault(sender, 
-                []).append({'sender': sender, 'recipient': self.username, 'message': msg, 'timestamp': dm.timestamp})
+            self._local['messages'].setdefault(sender, []).append({
+                'sender': sender, 'recipient': self.username,
+                'message': msg, 'timestamp': dm.timestamp})
             if sender == self.recipient:
                 self.body.insert_contact_message(msg)
         save_user_data(self.username, self._local)
@@ -276,7 +277,10 @@ class MainApp(tk.Frame):
                                   command=self.add_contact)
         settings_file.add_command(label='Configure DS Server',
                                   command=self.configure_server)
-        self.body = Body(self.root, recipient_selected_callback=self.recipient_selected, add_user_callback=self.add_contact)
+        self.body = Body(
+            self.root,
+            recipient_selected_callback=self.recipient_selected,
+            add_user_callback=self.add_contact)
         self.body.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
         self.footer = Footer(self.root, send_callback=self.send_message)
         self.footer.pack(fill=tk.BOTH, side=tk.BOTTOM)
@@ -313,7 +317,6 @@ class LoginDialog(simpledialog.Dialog):
 
 def main():
     '''Main initialization of the program's GUI'''
-    import sys
     root = tk.Tk()
     root.withdraw()
 
@@ -322,7 +325,10 @@ def main():
         root.destroy()
         return 1
 
-    dm = DirectMessenger(host=dlg.server, port = 3001, username = dlg.username, password = dlg.password)
+    dm = DirectMessenger(host=dlg.server,
+                        port = 3001,
+                        username = dlg.username,
+                        password = dlg.password)
 
     offline = False
     try:
@@ -335,7 +341,8 @@ def main():
     elif offline:
         local = load_user_data(dlg.username)
         if local and local['contacts']:
-            messagebox.showwarning("Offline Mode", f"Cannot connect to {dlg.server}, starting offline.")
+            messagebox.showwarning("Offline Mode",
+                                   f"Cannot connect to {dlg.server}, starting offline.")
         else:
             messagebox.showerror("Cannot start offline", "No local data and server is unreachable.")
             root.destroy()
@@ -346,7 +353,7 @@ def main():
         return 1
 
     root.deiconify()
-    root.title("Direct Messenger - {dlg.username}")
+    root.title(f"Direct Messenger - {dlg.username}")
     root.geometry("800x600")
     app = MainApp(root, direct_messenger=dm)
     app.offline = offline
@@ -362,5 +369,4 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())
