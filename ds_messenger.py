@@ -1,12 +1,15 @@
 # ds_messenger.py
-# Starter code for assignment 2 in ICS 32 Programming with Software Libraries in Python
+# Starter code for assignment 2 in ICS 32 Programming in Python
 # Replace the following placeholders with your information.
 # Liam
 # lpkenned@uci.edu
 # 81845142
-import socket, time
+'''Sets up the Messaging and connections'''
+import socket
+import time
 from ds_protocol import make_auth, make_directmessage, make_fetch, extract_json
 from notebook import load_user_data, save_user_data
+
 
 class DirectMessage:
     '''Format for the specific Direct Message function'''
@@ -19,7 +22,8 @@ class DirectMessage:
 
 class DirectMessenger:
     '''Support code for the Messenger'''
-    def __init__(self, host='127.0.0.1', port=3001, dsuserver=None, username=None, password=None):
+    def __init__(self, host='127.0.0.1',
+                 port=3001, username=None, password=None):
         self.token = None
         self.host = host
         self.port = port
@@ -32,7 +36,7 @@ class DirectMessenger:
         self._local = load_user_data(self.username)
 
     def connect(self):
-        '''Connects to the host and the port while also allowing for reading and writing'''
+        '''Connects to the host/port while allowing for reading and writing'''
         self._sock = socket.create_connection((self.host, self.port))
         self._in = self._sock.makefile('r')
         self._out = self._sock.makefile('w')
@@ -55,8 +59,7 @@ class DirectMessenger:
             self.token = resp.token
             self._local = load_user_data(self.username)
             return True
-        else:
-            return False
+        return False
 
     def send_msg(self, message: str, recipient: str) -> bool:
         '''Returns true if message successfully sent, false if send failed'''
@@ -66,12 +69,13 @@ class DirectMessenger:
         self._out.flush()
 
         resp = extract_json(self._in.readline())
-        ok = (resp.type == 'ok')
+        ok = resp.type == 'ok'
         if ok:
             if recipient not in self._local['contacts']:
                 self._local['contacts'].append(recipient)
             self._local['messages'].setdefault(recipient, []).append({
-                "sender": self.username, 'recipient': recipient, 'message': message, 'timestamp': str(ts)})
+                'sender': self.username, 'recipient': recipient,
+                'message': message, 'timestamp': str(ts)})
             save_user_data(self.username, self._local)
         return ok
 
@@ -89,14 +93,13 @@ class DirectMessenger:
             dm.message = m.get('message')
             dm.timestamp = m.get('timestamp')
             out.append(dm)
+
             peer = dm.sender
             if peer not in self._local['contacts']:
                 self._local['contacts'].append(peer)
-            self._local['messages'].setdefault(peer,
-                                               []).append({"sender": peer,
-                                                           'recipient': self.username,
-                                                           'message': dm.message,
-                                                           'timestamp': dm.timestamp})
+            self._local['messages'].setdefault(peer, []).append({
+                "sender": peer, 'recipient': self.username,
+                'message': dm.message, 'timestamp': dm.timestamp})
         save_user_data(self.username, self._local)
         return out
 
