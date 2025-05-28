@@ -6,9 +6,17 @@
 import sys
 import tkinter as tk
 import time
+from dataclasses import dataclass
 from tkinter import ttk, simpledialog, messagebox
 from notebook import load_user_data, save_user_data
 from ds_messenger import DirectMessenger
+
+@dataclass
+class Account:
+    host: str
+    port: int
+    user: str
+    pwd: str
 
 
 class Body(tk.Frame):
@@ -178,6 +186,7 @@ class MainApp(tk.Frame):
         '''Initalizes variables'''
         super().__init__(root)
         self.root = root
+        self.offline = False
         self.direct_messenger = direct_messenger
         self.username = direct_messenger.username
         self.server = direct_messenger.host
@@ -351,11 +360,6 @@ class LoginDialog(simpledialog.Dialog):
 
 def main():
     '''Main initialization of the program's GUI'''
-    '''def __init__(self, root, direct_messenger):
-        super().__init__(root)
-        self.offline = False
-        self.direct_messenger = direct_messenger
-        self.username = direct_messenger.username'''
     root = tk.Tk()
     root.withdraw()
 
