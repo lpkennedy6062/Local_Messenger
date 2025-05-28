@@ -1,37 +1,15 @@
 # ICS 32
 # Assignment #1: Diary
-#
 # Author: Aaron Imani
-#
 # v0.1.0
-
 # You should review this code to identify what features you need to support
 # in your program for assignment 1.
 #
 # YOU DO NOT NEED TO READ OR UNDERSTAND THE JSON SERIALIZATION ASPECTS OF THIS CODE 
 # RIGHT NOW, though can you certainly take a look at it if you are curious since we 
 # already covered a bit of the JSON format in class.
-'''
-import json, time
-from pathlib import Path
-STORE_DIR = Path.home() / '.ds_store'
-if STORE_DIR.exists() and not STORE_DIR.is_dir():
-    STORE_DIR.unlink()
-STORE_DIR.mkdir(exist_ok=True, parents = True)
-
-def load_user_data(username: str) -> dict:
-        store_file = STORE_DIR / f'{username}.json'
-        if not store_file.exists():
-            return {"contacts": [], "messages": {}}
-        with store_file.open('r', encoding='utf-8') as f:
-            return json.load(f)
-        
-def save_user_data(username: str, data: dict) -> None:
-    store_file = STORE_DIR / f"{username}.json"
-    with store_file.open('w', encoding = 'utf-8') as f:
-        json.dump(data, f, indent = 2)'''
 # notebook.py
-
+import time
 import json
 from pathlib import Path
 
@@ -39,7 +17,7 @@ BASE_DIR  = Path.home() / "Documents" / "ICS_32" / "a3-starter"
 STORE_DIR = BASE_DIR / "store"
 
 def load_user_data(username: str) -> dict:
-    """Load contacts+messages for a user, or return default on error."""
+    """Load contacts/messages for a user, or return default on error."""
     default = {"contacts": [], "messages": {}}
     path = STORE_DIR / f"{username}.json"
     try:
