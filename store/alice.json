@@ -1,128 +1,20 @@
 {
   "contacts": [
-    "bob"
+    "Bob"
   ],
   "messages": {
-    "bob": [
+    "Bob": [
       {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748233861.020493"
+        "sender": "Alice",
+        "recipient": "Bob",
+        "message": "Hello Bob this is Alice!",
+        "timestamp": "1748498196.339177"
       },
       {
-        "sender": "bob",
-        "recipient": "alice",
-        "message": "hey alice",
-        "timestamp": "1748233861.142163"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748382552.83808"
-      },
-      {
-        "sender": "bob",
-        "recipient": "alice",
-        "message": "hey alice",
-        "timestamp": "1748382552.96692"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748382609.847312"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748413414.5634181"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748414788.205719"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748416004.918135"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748417937.180862"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748453830.9521039"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748473818.864309"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748480974.265305"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748481174.87834"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748481363.119334"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748483652.947793"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748483956.34736"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748485822.030368"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748491750.843858"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748491891.47958"
-      },
-      {
-        "sender": "alice",
-        "recipient": "bob",
-        "message": "Hello Bob!",
-        "timestamp": "1748493948.815465"
+        "sender": "Bob",
+        "recipient": "Alice",
+        "message": "Hi Alice, I got your message!!",
+        "timestamp": "1748498216.604723"
       }
     ]
   }

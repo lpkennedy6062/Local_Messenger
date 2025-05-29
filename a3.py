@@ -193,7 +193,7 @@ class MainApp(tk.Frame):
         self.username = direct_messenger.username
         self.server = direct_messenger.host
         self.password = direct_messenger.password
-        self.recipient = direct_messenger.recipient
+        self.recipient = None
         self._draw()
         self._local = load_user_data(self.direct_messenger.username)
         for c in self._local['contacts']:
@@ -325,13 +325,12 @@ class MainApp(tk.Frame):
 
 class LoginDialog(simpledialog.Dialog):
     '''Sets up Login setup'''
-    def __init__(self, parent, title=None, direct_messenger=None) -> None:
-        super().__init__(parent, title)
+    def __init__(self, parent, title=None) -> None:
         self.offline = False
-        self.server = direct_messenger.host
-        self.username = direct_messenger.username
-        self.password = direct_messenger.password
-        self.direct_messenger = direct_messenger
+        self.server = "127.0.0.1"
+        self.username = ""
+        self.password = ""
+        super().__init__(parent, title)
 
     def body(self, master) -> tk.Entry:
         '''Builds body for setup to enter username and password'''
