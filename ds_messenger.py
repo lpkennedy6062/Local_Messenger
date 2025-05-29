@@ -13,7 +13,7 @@ from notebook import load_user_data, save_user_data
 
 class DirectMessage:
     '''Format for the specific Direct Message function'''
-    def __init__(self):
+    def __init__(self) -> None:
         self.recipient = None
         self.message = None
         self.sender = None
@@ -23,7 +23,7 @@ class DirectMessage:
 class DirectMessenger:
     '''Support code for the Messenger'''
     def __init__(self, host='127.0.0.1',
-                 port=3001, username=None, password=None):
+                 port=3001, username=None, password=None) -> None:
         self.token = None
         self.host = host
         self.port = port
@@ -35,7 +35,7 @@ class DirectMessenger:
         self._out = None
         self._local = load_user_data(self.username)
 
-    def connect(self):
+    def connect(self) -> None:
         '''Connects to the host/port while allowing for reading and writing'''
         self._sock = socket.create_connection((self.host, self.port))
         self._in = self._sock.makefile('r')
@@ -78,6 +78,16 @@ class DirectMessenger:
                 'message': message, 'timestamp': str(ts)})
             save_user_data(self.username, self._local)
         return ok
+
+    @property
+    def local(self) -> dict:
+        '''Read only accoss to notebook'''
+        return self._local
+
+    @local.setter
+    def local(self, new_local) -> None:
+        '''Allows tests to modify local'''
+        self._local = new_local
 
     def retrieve_new(self) -> list:
         '''Returns list of DirectMessage objects containing all new messages'''

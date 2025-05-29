@@ -18,7 +18,11 @@ def extract_json(json_msg: str) -> ServerResponse:
     try:
         json_obj = json.loads(json_msg)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON:{e}") from e
+        if '""message":' in json_msg:
+            repaired = json_msg.replace('""message":', '\",\"message\":')
+            json_obj = json.loads(repaired)
+        else:
+            raise ValueError(f"Invalid JSON: {e}") from e
     if 'response' not in json_obj or not isinstance(
             json_obj['response'], dict):
         raise ValueError("Missing or invalid 'response' field")

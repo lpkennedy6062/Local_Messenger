@@ -6,23 +6,17 @@
 import sys
 import tkinter as tk
 import time
-from dataclasses import dataclass
+from typing import Optional
 from tkinter import ttk, simpledialog, messagebox
 from notebook import load_user_data, save_user_data
 from ds_messenger import DirectMessenger
-
-@dataclass
-class Account:
-    host: str
-    port: int
-    user: str
-    pwd: str
 
 
 class Body(tk.Frame):
     '''Formulates the body of the GUI'''
     def __init__(self, root,
-                 recipient_selected_callback=None, add_user_callback=None):
+                 recipient_selected_callback=None,
+                 add_user_callback=None) -> None:
         '''Initializes base variables'''
         tk.Frame.__init__(self, root)
         self._contacts = [str]
@@ -31,7 +25,7 @@ class Body(tk.Frame):
         self._contacts = []
         self._draw()
 
-    def node_select(self, _event):
+    def node_select(self, _event) -> None:
         '''Sets state and entry for selection'''
         self.message_editor.config(state='normal')
         self.message_editor.delete('1.0', tk.END)
@@ -41,23 +35,23 @@ class Body(tk.Frame):
         if self._select_callback is not None:
             self._select_callback(entry)
 
-    def insert_contact(self, contact: str):
+    def insert_contact(self, contact: str) -> None:
         '''Inserts contacts'''
         self._contacts.append(contact)
         idx = len(self._contacts) - 1
         self._insert_contact_tree(idx, contact)
 
-    def _insert_contact_tree(self, idx, contact: str):
+    def _insert_contact_tree(self, idx, contact: str) -> None:
         '''Inputs the contact trees'''
         idx = self.posts_tree.insert('', idx, idx, text=contact)
 
-    def insert_user_message(self, message: str):
+    def insert_user_message(self, message: str) -> None:
         '''Adds user message into editor on the right'''
         self.message_editor.config(state='normal')
         self.message_editor.insert('end', message+'\n', 'entry-right')
         self.message_editor.config(state='disabled')
 
-    def insert_contact_message(self, message: str):
+    def insert_contact_message(self, message: str) -> None:
         '''Adds user message into editor on the left'''
         self.message_editor.config(state='normal')
         self.message_editor.insert('end', message + '\n', 'entry-left')
@@ -67,12 +61,17 @@ class Body(tk.Frame):
         '''Gets the text entry'''
         return self.entry_editor.get('1.0', 'end').rstrip()
 
-    def set_text_entry(self, text: str):
+    def set_text_entry(self, text: str) -> None:
         '''Inserts the new text entry'''
         self.entry_editor.delete(1.0, tk.END)
         self.entry_editor.insert(1.0, text)
 
-    def _draw(self):
+    @property
+    def contactlst(self) -> list[str]:
+        '''Read only list of contacts'''
+        return self._contacts
+
+    def _draw(self) -> None:
         '''Draws the GUI'''
         # left
         posts_frame = tk.Frame(master=self, width=250)
@@ -121,18 +120,18 @@ class Body(tk.Frame):
 
 class Footer(tk.Frame):
     '''Creates the Footer Class'''
-    def __init__(self, root, send_callback=None):
+    def __init__(self, root, send_callback=None) -> None:
         '''Initializes variables'''
         tk.Frame.__init__(self, root)
         self._send_callback = send_callback
         self._draw()
 
-    def send_click(self):
+    def send_click(self) -> None:
         '''Sends click'''
         if self._send_callback is not None:
             self._send_callback()
 
-    def _draw(self):
+    def _draw(self) -> None:
         '''Draws button and footer'''
         save_button = tk.Button(master=self,
                                 text="Send", width=20, command=self.send_click)
@@ -144,7 +143,10 @@ class Footer(tk.Frame):
 
 class NewContactDialog(tk.simpledialog.Dialog):
     '''Class of the New Contact Dialog'''
-    def __init__(self, root, title=None, user=None, pwd=None, server=None):
+    def __init__(self, root, title=None, *,
+                 user: Optional[str] = None,
+                 pwd: Optional[str] = None,
+                 server: Optional[str] = None) -> None:
         "Initizlizes setup variables"
         self.root = root
         self.server = server
@@ -152,7 +154,7 @@ class NewContactDialog(tk.simpledialog.Dialog):
         self.pwd = pwd
         super().__init__(root, title)
 
-    def body(self, master):
+    def body(self, master) -> None:
         '''Sets up body of the frame'''
         self.server_label = tk.Label(master,
                                      width=30, text="DS Server Address")
@@ -173,7 +175,7 @@ class NewContactDialog(tk.simpledialog.Dialog):
         self.password_entry.insert(tk.END, self.pwd)
         self.password_entry.pack()
 
-    def apply(self):
+    def apply(self) -> None:
         '''Applies Username, password, and server'''
         self.user = self.username_entry.get()
         self.pwd = self.password_entry.get()
@@ -182,7 +184,7 @@ class NewContactDialog(tk.simpledialog.Dialog):
 
 class MainApp(tk.Frame):
     '''Sets up the Main app frame'''
-    def __init__(self, root, direct_messenger):
+    def __init__(self, root, direct_messenger) -> None:
         '''Initalizes variables'''
         super().__init__(root)
         self.root = root
@@ -195,10 +197,10 @@ class MainApp(tk.Frame):
         self._draw()
         self._local = load_user_data(self.direct_messenger.username)
         for c in self._local['contacts']:
-            if c not in self.body._contacts:
+            if c not in self.body.contactlst:
                 self.body.insert_contact(c)
 
-    def send_message(self):
+    def send_message(self) -> None:
         '''Sends message code'''
         if getattr(self, 'offline', False):
             tk.messagebox.showerror("Offline",
@@ -221,7 +223,7 @@ class MainApp(tk.Frame):
             tk.messagebox.showerror("Send failed",
                                     f"Cound not send to {self.recipient}")
 
-    def add_contact(self):
+    def add_contact(self) -> None:
         '''Adds new contacts with GUI'''
         new = tk.simpledialog.askstring("Add Contact", "Username:")
         if not new or new in self._local['contacts']:
@@ -246,7 +248,7 @@ class MainApp(tk.Frame):
             tk.messagebox.showerror("Error",
                                     f"I could not register user {new}")
 
-    def recipient_selected(self, recipient):
+    def recipient_selected(self, recipient) -> None:
         '''Supports selecting messaging users'''
         self.recipient = recipient
 
@@ -260,22 +262,24 @@ class MainApp(tk.Frame):
             else:
                 self.body.insert_contact_message(msg['message'])
 
-    def configure_server(self):
+    def configure_server(self) -> None:
         '''Sets up server'''
         ud = NewContactDialog(self.root, "Configure Account",
-                              self.username, self.password, self.server)
+                              user=self.username, pwd=self.password,
+                              server=self.server)
+# self.username, self.password, self.server)
         self.username = ud.user
         self.password = ud.pwd
         self.server = ud.server
 
-    def publish(self, message: str):
+    def publish(self, message: str) -> None:
         '''Publishes user and contact messages'''
         if self.recipient == self.username:
             self.body.insert_user_message(message)
         else:
             self.body.insert_contact_message(message)
 
-    def check_new(self):
+    def check_new(self) -> None:
         '''Checks for new messages'''
         new = self.direct_messenger.retrieve_new()
         for dm in new:
@@ -293,7 +297,7 @@ class MainApp(tk.Frame):
         save_user_data(self.username, self._local)
         self.root.after(2000, self.check_new)
 
-    def _draw(self):
+    def _draw(self) -> None:
         '''Draws menu'''
         menu_bar = tk.Menu(self.root)
         self.root['menu'] = menu_bar
@@ -321,7 +325,7 @@ class MainApp(tk.Frame):
 
 class LoginDialog(simpledialog.Dialog):
     '''Sets up Login setup'''
-    def __init__(self, parent, title=None, direct_messenger=None):
+    def __init__(self, parent, title=None, direct_messenger=None) -> None:
         super().__init__(parent, title)
         self.offline = False
         self.server = direct_messenger.host
@@ -329,7 +333,7 @@ class LoginDialog(simpledialog.Dialog):
         self.password = direct_messenger.password
         self.direct_messenger = direct_messenger
 
-    def body(self, master):
+    def body(self, master) -> tk.Entry:
         '''Builds body for setup to enter username and password'''
         row1 = tk.Frame(master)
         row1.pack(fill='x', padx=5, pady=2)
@@ -351,14 +355,14 @@ class LoginDialog(simpledialog.Dialog):
         self.pw_entry.pack(side='right', fill='x', expand=True)
         return self.user_entry
 
-    def apply(self):
+    def apply(self) -> None:
         '''Sets the server, username, and password'''
         self.server = self.server_entry.get().strip()
         self.username = self.user_entry.get().strip()
         self.password = self.pw_entry.get()
 
 
-def main():
+def main() -> int:
     '''Main initialization of the program's GUI'''
     root = tk.Tk()
     root.withdraw()
@@ -406,7 +410,7 @@ def main():
 
     _local = load_user_data(dlg.username)
     for c in _local['contacts']:
-        if c not in app.body._contacts:
+        if c not in app.body.contactlst:
             app.body.insert_contact(c)
     if ok:
         app.check_new()
