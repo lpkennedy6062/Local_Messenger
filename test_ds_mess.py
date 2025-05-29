@@ -233,4 +233,4 @@ def test_retrieve_all_null_messages(monkeypatch):
     # 3) retrieve_all() must return an empty list
     all_msgs = dm.retrieve_all()
     assert isinstance(all_msgs, list)
-    assert all_msgs == []
+    assert not all_msgs
