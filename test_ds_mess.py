@@ -5,10 +5,10 @@ import time
 from ds_messenger import DirectMessenger, DirectMessage
 
 
-def test_alicebob():
+def test_alicebob() -> None:
     '''Tests Login with 2 users'''
-    alice = DirectMessenger(username='alice', password='password')
-    bob = DirectMessenger(username='bob', password='password')
+    alice = DirectMessenger(username='Alice', password='password')
+    bob = DirectMessenger(username='Bob', password='password')
 
     assert alice.authenticate(), "Alice login failed"
     assert bob.authenticate(),   "Bob login failed"
@@ -28,23 +28,23 @@ def test_alicebob():
 
 class DummySocket:
     '''Sets up dummy socket to run through code'''
-    def __init__(self, responses):
+    def __init__(self, responses) -> None:
         self._rbuf = io.StringIO("\n".join(responses) + "\n")
         self._wbuf = io.StringIO()
 
-    def makefile(self, mode):
+    def makefile(self, mode) -> io.StringIO:
         '''Makes file'''
         return self._rbuf if "r" in mode else self._wbuf
 
 
-def patch_socket(monkeypatch, responses):
+def patch_socket(monkeypatch, responses) -> DummySocket:
     '''Attaches socket for use'''
     dummy = DummySocket(responses)
     monkeypatch.setattr(socket, "create_connection", lambda addr: dummy)
     return dummy
 
 
-def test_authenticate_success(monkeypatch):
+def test_authenticate_success(monkeypatch) -> None:
     '''Tests to authenticate successful login'''
     dummy = patch_socket(monkeypatch,
                          ['{"response":{"type":"ok"'
@@ -55,7 +55,7 @@ def test_authenticate_success(monkeypatch):
     assert dm.token == "TK"
 
 
-def test_authenticate_error(monkeypatch):
+def test_authenticate_error(monkeypatch) -> None:
     '''Tests unsuccessful login'''
     dummy = patch_socket(monkeypatch,
                          ['{"response":{"type":"error","message":"wrong"}}'])
@@ -65,7 +65,7 @@ def test_authenticate_error(monkeypatch):
     assert dm.token is None
 
 
-def test_send_msg_and_retrieve(monkeypatch):
+def test_send_msg_and_retrieve(monkeypatch) -> None:
     '''Tests sending message and retrieving it'''
     dummy = patch_socket(monkeypatch, [
         '{"response":{"type":"ok","message":"W","token":"TK2"}}',
@@ -87,7 +87,7 @@ def test_send_msg_and_retrieve(monkeypatch):
     assert msg.message == "hey"
 
 
-def test_retrieve_all(monkeypatch):
+def test_retrieve_all(monkeypatch) -> None:
     '''Tests retrieving all messages'''
     dummy = patch_socket(monkeypatch, [
         '{"response":{"type":"ok","message":"W","token":"TK3"}}',
@@ -105,7 +105,7 @@ def test_retrieve_all(monkeypatch):
     assert any(m.recipient == "bob" for m in all_msgs)
 
 
-def test_authenticate_with_args(monkeypatch):
+def test_authenticate_with_args(monkeypatch) -> None:
     '''Tests authentication with arguements in place'''
     dummy = patch_socket(monkeypatch, [
         '{"response":{"type":"ok","message":"OK","token":"TOK"}}'])
@@ -117,7 +117,7 @@ def test_authenticate_with_args(monkeypatch):
     assert dm.token == "TOK"
 
 
-def test_send_msg_updates_local(monkeypatch):
+def test_send_msg_updates_local(monkeypatch) -> None:
     '''Tests sending messages and checking locally'''
     monkeypatch.setattr("ds_messenger.load_user_data",
                         lambda u: {"contacts": [], "messages": {}})
@@ -136,7 +136,7 @@ def test_send_msg_updates_local(monkeypatch):
     assert dm.local["messages"]["bob"][-1]["message"] == "hello"
 
 
-def test_retrieve_new_updates_local(monkeypatch):
+def test_retrieve_new_updates_local(monkeypatch) -> None:
     '''Tests retrieving new updates locally'''
     monkeypatch.setattr("ds_messenger.load_user_data",
                         lambda u: {"contacts": [], "messages": {}})
@@ -157,7 +157,7 @@ def test_retrieve_new_updates_local(monkeypatch):
     assert "alice" in dm.local["messages"]
 
 
-def test_send_msg_new_contact(monkeypatch):
+def test_send_msg_new_contact(monkeypatch) -> None:
     '''Tests sending a message to a new contact'''
     dummy = patch_socket(monkeypatch, [
         '{"response":{"type":"ok","message":"Welcome","token":"TK1"}}',
@@ -177,7 +177,7 @@ def test_send_msg_new_contact(monkeypatch):
     assert msgs and msgs[-1]["message"] == "hello bob"
 
 
-def test_send_msg_existing_contact(monkeypatch):
+def test_send_msg_existing_contact(monkeypatch) -> None:
     '''Tests sending a message to an existing one'''
     dummy = patch_socket(monkeypatch, [
         '{"response":{"type":"ok","message":"Welcome","token":"TK2"}}',
@@ -196,7 +196,7 @@ def test_send_msg_existing_contact(monkeypatch):
     assert dm.local["messages"]["bob"][-1]["message"] == "second msg"
 
 
-def test_send_msg_failure_leaves_local(monkeypatch):
+def test_send_msg_failure_leaves_local(monkeypatch) -> None:
     '''Tests failed message'''
     dummy = patch_socket(monkeypatch, [
         '{"response":{"type":"ok","message":"Welcome","token":"TK3"}}',
@@ -213,3 +213,24 @@ def test_send_msg_failure_leaves_local(monkeypatch):
 
     assert not dm.local["contacts"]
     assert not dm.local["messages"]
+
+
+def test_retrieve_all_null_messages(monkeypatch):
+    """
+    Tests retrieve_all() when the server returns `"messages": null`,
+    so resp.messages is None and we fall back to the `or []` branch.
+    """
+    # 1) Stub socket: auth-ok, then fetch-all with messages:null
+    dummy = patch_socket(monkeypatch, [
+        '{"response":{"type":"ok","message":"Auth","token":"TKN5"}}',
+        '{"response":{"type":"ok","messages":null}}'
+    ])
+
+    # 2) Authenticate
+    dm = DirectMessenger(host="h", port=1, username="u", password="p")
+    assert dm.authenticate() is True
+
+    # 3) retrieve_all() must return an empty list
+    all_msgs = dm.retrieve_all()
+    assert isinstance(all_msgs, list)
+    assert all_msgs == []

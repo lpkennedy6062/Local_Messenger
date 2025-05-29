@@ -196,6 +196,22 @@ class MainApp(tk.Frame):
         self.recipient = None
         self._draw()
         self._local = load_user_data(self.direct_messenger.username)
+        all_local_msgs = self._local.get('messages', {})
+        if not any(all_local_msgs.values()):
+            try:
+                full_history = self.direct_messenger.retrieve_all()
+            except (ValueError, OSError):
+                full_history = []
+            for dm in full_history:
+                self._local['contacts'].append(
+                    dm.sender if dm.sender != self.username else dm.recipient)
+                self._local['messages'].setdefault(dm.sender, []).append({
+                    'sender':    dm.sender,
+                    'recipient': dm.recipient,
+                    'message':   dm.message,
+                    'timestamp': dm.timestamp
+                })
+            save_user_data(self.username, self._local)
         for c in self._local['contacts']:
             if c not in self.body.contactlst:
                 self.body.insert_contact(c)
