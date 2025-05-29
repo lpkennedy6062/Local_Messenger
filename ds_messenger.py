@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from ds_protocol import make_auth, make_directmessage, make_fetch, extract_json
 from notebook import load_user_data, save_user_data
 
+
 @dataclass
 class DirectMessage:
     '''Format for the specific Direct Message function'''
@@ -19,7 +20,6 @@ class DirectMessage:
     message: Optional[str] = None
     sender: Optional[str] = None
     timestamp: Optional[float] = None
-
 
 
 class DirectMessenger:
